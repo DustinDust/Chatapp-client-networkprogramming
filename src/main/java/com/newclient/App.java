@@ -21,10 +21,12 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Modality;
@@ -40,6 +42,7 @@ public class App extends Application {
 	ConversationList convoList = new ConversationList();
 	ClientConnection cc = new ClientConnection();
 	ConvoManager cm = new ConvoManager();
+	ChatView chatview = new ChatView();
 
 	@Override
 	public void init() throws Exception {
@@ -61,8 +64,21 @@ public class App extends Application {
 		cc.setOnGroupCallback(convoList.getGroupHandler());
 		cc.setOnListUserCallback(convoList.getListUserHandler());
 		cc.setOnListGroupCallback(convoList.getListGroupHandler());
+		cc.setOnLeaveGroupCallback(convoList.getLeaveGroupHandler());
+		cc.setOnMessageUserCallback(chatview.getMessageUserHandler());
+		cc.setOnMessageGroupCallback(chatview.getMessageGroupHandler());
+		cc.setOnPostCallback(chatview.getPostHandler());
 		mainStage.setScene(menu.getScene());
+		mainStage.setResizable(false);
+		mainStage.setTitle("Chat app client");
 		mainStage.show();
+		mainStage.setOnHiding((event) -> {
+			try {
+				cc.closeConnection();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		});
 	}
 
 	public static void main(String[] args) {
@@ -113,7 +129,7 @@ public class App extends Application {
 			});
 			container = new VBox(20, loginLabel, loginUserInput, loginPassInput, loginConfirmButton);
 			container.setAlignment(Pos.CENTER);
-			menuScene = new Scene(container, 600, 600);
+			menuScene = new Scene(container, 600, 400);
 		}
 
 		Scene getScene() {
@@ -165,9 +181,6 @@ public class App extends Application {
 		public ConversationList() {
 			this.listUsers = new ListView<>();
 			this.listGroups = new ListView<>();
-			listUsers.getItems().add("dummy 1");
-			listUsers.getItems().add("dummy 2");
-			listGroups.getItems().add("group dummy");
 			groupReloadButton = new Button("Reload group List");
 			userReloadButton = new Button("Reload user List");
 			groupButton = new Button("Create a group from selected users");
@@ -224,7 +237,8 @@ public class App extends Application {
 				public void handle(MouseEvent event) {
 					if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
 						if (listGroups.getSelectionModel().getSelectedItem() != null) {
-							// TODO: move to chat scene with groups
+							String selectedGroup = listGroups.getSelectionModel().getSelectedItem();
+							chatview.activate(selectedGroup, false);
 						}
 					}
 				}
@@ -234,7 +248,8 @@ public class App extends Application {
 				public void handle(MouseEvent event) {
 					if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2) {
 						if (listUsers.getSelectionModel().getSelectedItem() != null) {
-							// TODO: move to chat scene with user
+							String selectedUser = listUsers.getSelectionModel().getSelectedItem();
+							chatview.activate(selectedUser, true);
 						}
 					}
 				}
@@ -243,7 +258,7 @@ public class App extends Application {
 				@Override
 				public void handle(MouseEvent event) {
 					ArrayList<String> selectedUsers = new ArrayList<>(listUsers.getSelectionModel().getSelectedItems());
-					if (selectedUsers.size() <= 1) {
+					if (selectedUsers.size() < 1) {
 						return;
 					}
 					InputDialogueWindows getGroupName = new InputDialogueWindows("Input", "group name go here");
@@ -302,7 +317,7 @@ public class App extends Application {
 			bar2.getButtons().addAll(groupButton, addUserButton, leaveGroupButton);
 			listUsers.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 			container = new VBox(20, bar1, listUsers, bar2, listGroups);
-			listScene = new Scene(container, 600, 600);
+			listScene = new Scene(container, 600, 400);
 		}
 
 		Scene getScene() {
@@ -339,6 +354,8 @@ public class App extends Application {
 		Consumer<String> getListUserHandler() {
 			return str -> {
 				ArrayList<String> part = MessageHelper.splitMessageL2(str);
+				if (part.size() <= 1)
+					return;
 				ArrayList<String> actualUsers = new ArrayList<>();
 				ArrayList<Conversation> userConvos = new ArrayList<>();
 				for (int i = 1; i < part.size(); i++) {
@@ -362,8 +379,46 @@ public class App extends Application {
 			};
 		}
 
+		Consumer<String> getLeaveGroupHandler() {
+			return str -> {
+				ArrayList<String> part = MessageHelper.splitMessageL2(str);
+				if (part.get(1).equals("60")) {
+					String leavewhich = part.get(2);
+					cm.clearBuffer(leavewhich, false);
+				} else {
+					Platform.runLater(() -> {
+						MessageDialogueWindows error = new MessageDialogueWindows("Fail to leave group", "Error",
+								Modality.APPLICATION_MODAL);
+						error.showDialogue();
+					});
+				}
+			};
+		}
+
 		Consumer<String> getListGroupHandler() {
 			return str -> {
+				ArrayList<String> part2 = MessageHelper.splitMessageL2(str);
+				ArrayList<String> groupNames = new ArrayList<>();
+				ArrayList<Conversation> groupConvos = new ArrayList<>();
+				for (int i = 1; i < part2.size(); i++) {
+					ArrayList<String> part3 = MessageHelper.splitMessageL3(part2.get(i));
+					String groupName = part3.get(0);
+					ArrayList<String> groupMembers = new ArrayList<>();
+					for (int j = 1; j < part3.size(); j++) {
+						groupMembers.add(part3.get(j));
+					}
+					Conversation groupconvo = new Conversation(groupMembers, groupName);
+					groupNames.add(groupName);
+					groupConvos.add(groupconvo);
+				}
+				cm.updateConvos(groupConvos, false);
+				Platform.runLater(() -> {
+					if (groupNames.size() >= 1) {
+						updateGroupList(groupNames);
+					} else {
+						updateGroupList(new ArrayList<String>());
+					}
+				});
 			};
 		}
 
@@ -402,6 +457,149 @@ public class App extends Application {
 							Modality.APPLICATION_MODAL);
 					dw.showDialogue();
 				}
+			};
+		}
+	}
+
+	private class ChatView {
+		private Scene chatScene;
+		private String currentConvo;
+		private VBox container;
+		private HBox infoDisplayContainer;
+		private HBox inputDisplayContainer;
+		private Button sendButton;
+		private Button backButton;
+		private boolean isUser;
+		private TextArea chatText;
+		private TextArea convoInfoText;
+		private TextField messageInput;
+
+		ChatView() {
+			sendButton = new Button("Send message");
+			sendButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+				@Override
+				public void handle(MouseEvent event) {
+					if (event.getButton() == MouseButton.PRIMARY) {
+						String message = messageInput.getText();
+						if (message.length() == 0) {
+							return;
+						}
+						String sendmessage = MessageHelper.composePostMessage(currentUser, currentConvo, message);
+						if (!isUser) {
+							sendmessage = MessageHelper.composeBroadCaseMessage(currentUser, currentConvo, message);
+						}
+						Message sent = new Message(currentUser, message);
+						cm.insertMessage(sent, currentConvo, isUser);
+						chatText.appendText(sent.getFormatted());
+						try {
+							cc.send(sendmessage);
+						} catch (Exception e) {
+							MessageDialogueWindows err = new MessageDialogueWindows("Fail to send message", "Error",
+									Modality.APPLICATION_MODAL);
+							err.showDialogue();
+							e.printStackTrace();
+						}
+						messageInput.clear();
+					}
+				}
+			});
+			backButton = new Button("Back");
+			backButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+				@Override
+				public void handle(MouseEvent event) {
+					if (event.getButton() == MouseButton.PRIMARY) {
+						chatText.clear();
+						convoInfoText.clear();
+						currentConvo = "";
+						mainStage.setScene(convoList.getScene());
+					}
+				}
+			});
+			chatText = new TextArea();
+			chatText.setEditable(false);
+			chatText.setPrefWidth(411);
+			convoInfoText = new TextArea();
+			convoInfoText.setEditable(false);
+			convoInfoText.setPrefWidth(194.4);
+			messageInput = new TextField();
+			messageInput.setPromptText("Enter message");
+			messageInput.setPrefWidth(535);
+			infoDisplayContainer = new HBox(chatText, convoInfoText);
+			inputDisplayContainer = new HBox(messageInput, sendButton, backButton);
+			infoDisplayContainer.setPrefWidth(600);
+			infoDisplayContainer.setPrefHeight(371);
+			inputDisplayContainer.setPrefWidth(600);
+			inputDisplayContainer.setPrefHeight(9);
+			container = new VBox(infoDisplayContainer, inputDisplayContainer);
+			chatScene = new Scene(container, 600, 400);
+			currentConvo = "";
+		}
+
+		public void activate(String which, boolean isUser) {
+			currentConvo = which;
+			this.isUser = isUser;
+			ArrayList<String> members = cm.getMembers(which, isUser);
+			ArrayList<Message> buffer = cm.getBuffer(which, isUser);
+			StringBuilder infotext = new StringBuilder(which + " (");
+			for (int i = 0; i < members.size() - 1; i++) {
+				infotext.append(members.get(i) + ", ");
+			}
+			infotext.append(members.get(members.size() - 1) + ");");
+			this.convoInfoText.setText(infotext.toString());
+			StringBuilder chattext = new StringBuilder();
+			for (Message chat : buffer) {
+				chattext.append(chat.getFormatted());
+			}
+			this.chatText.setText(chattext.toString());
+			mainStage.setScene(this.chatScene);
+		}
+
+		Consumer<String> getMessageUserHandler() {
+			return str -> {
+				ArrayList<String> part = MessageHelper.splitMessageL2(str);
+				if (part.size() >= 3) {
+					String from = part.get(1);
+					String content = part.get(2);
+					Message received = new Message(from, content);
+					cm.insertMessage(received, from, true);
+					if (currentConvo.equals(from) && this.isUser) {
+						chatText.appendText(received.getFormatted());
+					}
+				} else {
+					return;
+				}
+			};
+		}
+
+		Consumer<String> getMessageGroupHandler() {
+			return str -> {
+				ArrayList<String> part = MessageHelper.splitMessageL2(str);
+				if (part.size() >= 4) {
+					String groupname = part.get(1);
+					String from = part.get(2);
+					String content = part.get(3);
+					Message received = new Message(from, content);
+					cm.insertMessage(received, groupname, false);
+					if (currentConvo.equals(groupname) && !this.isUser) {
+						chatText.appendText(received.getFormatted());
+					}
+				} else {
+					return;
+				}
+			};
+		}
+
+		Consumer<String> getPostHandler() {
+			return str -> {
+				ArrayList<String> part = MessageHelper.splitMessageL2(str);
+				if (part.get(1).equals("21")) {
+					Platform.runLater(() -> {
+						MessageDialogueWindows error = new MessageDialogueWindows(
+								"Fail to send message: Your message partner had gone offline...", "Error", Modality.APPLICATION_MODAL);
+						error.showDialogue();
+					});
+				} else
+					return;
 			};
 		}
 	}

@@ -8,11 +8,7 @@ import java.net.Socket;
 import java.util.function.Consumer;
 
 import com.newclient.models.MessageType;
-import com.newclient.utils.MessageDialogueWindows;
 import com.newclient.utils.MessageHelper;
-
-import javafx.application.Platform;
-import javafx.stage.Modality;
 
 public class ClientConnection {
 	private ConnectionThread conThread = new ConnectionThread("127.0.0.1", 5500);
@@ -103,50 +99,41 @@ public class ClientConnection {
 				con.setTcpNoDelay(true);
 
 				while (true) {
-					try {
-						String message = in.readLine();
-						System.out.println(message);
-						MessageType type = MessageHelper.getMessageType(message);
-						switch (type) {
-							case USER:
-								onLoginCallback.accept(message);
-								break;
-							case POST:
-								onPostCallback.accept(message);
-								break;
-							case LISTUSER:
-								onListUserCallback.accept(message);
-								break;
-							case LISTGROUP:
-								onListGroupCallback.accept(message);
-								break;
-							case GROUP:
-								onGroupCallback.accept(message);
-								break;
-							case MESSAGEUSER:
-								onMessageUserCallback.accept(message);
-								break;
-							case MESSAGEGROUP:
-								onMessageGroupCallback.accept(message);
-								break;
-							case ADD:
-								onAddCallback.accept(message);
-								break;
-							case QUIT:
-								onLogoutCallback.accept(message);
-								break;
-							case LEAVE:
-								onLeaveGroupCallback.accept(message);
-							case INVALID:
-								break;
-						}
-					} catch (Exception e) {
-						Platform.runLater(() -> {
-							MessageDialogueWindows err = new MessageDialogueWindows("Error while routing message", "Connection error",
-									Modality.APPLICATION_MODAL);
-							err.showDialogue();
-							e.printStackTrace();
-						});
+					String message = in.readLine();
+					System.out.println(message);
+					MessageType type = MessageHelper.getMessageType(message);
+					switch (type) {
+						case USER:
+							onLoginCallback.accept(message);
+							break;
+						case POST:
+							onPostCallback.accept(message);
+							break;
+						case LISTUSER:
+							onListUserCallback.accept(message);
+							break;
+						case LISTGROUP:
+							onListGroupCallback.accept(message);
+							break;
+						case GROUP:
+							onGroupCallback.accept(message);
+							break;
+						case MESSAGEUSER:
+							onMessageUserCallback.accept(message);
+							break;
+						case MESSAGEGROUP:
+							onMessageGroupCallback.accept(message);
+							break;
+						case ADD:
+							onAddCallback.accept(message);
+							break;
+						case QUIT:
+							onLogoutCallback.accept(message);
+							break;
+						case LEAVE:
+							onLeaveGroupCallback.accept(message);
+						case INVALID:
+							break;
 					}
 				}
 			} catch (IOException e) {

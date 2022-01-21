@@ -12,7 +12,7 @@ public class MessageHelper {
 	public static String l3Delimiter;
 	static {
 		char[] c = { (char) 6 };
-		char[] d = { (char) 7 };
+		char[] d = { (char) 17 };
 		l2Delimiter = new String(c);
 		l3Delimiter = new String(d);
 	}

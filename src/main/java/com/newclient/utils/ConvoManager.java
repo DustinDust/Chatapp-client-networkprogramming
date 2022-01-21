@@ -9,36 +9,15 @@ import com.newclient.models.Message;
 public class ConvoManager {
 	private HashMap<String, Conversation> UserConvos;
 	private HashMap<String, Conversation> GroupConvos;
-	private String activeConvo;
-	private boolean isUser;
 
 	public ConvoManager() {
 		UserConvos = new HashMap<>();
 		GroupConvos = new HashMap<>();
-		// no active conversation when initiated;
-		activeConvo = new String("");
 	}
 
-	public void activateConvo(String name, boolean isUSer) {
-		this.isUser = isUSer;
-		this.activeConvo = name;
-	}
-
-	public Conversation getActivateConvo() {
+	public void updateConvos(ArrayList<Conversation> convoList, boolean isUser) {
 		if (isUser) {
-			return UserConvos.get(activeConvo);
-		} else {
-			return GroupConvos.get(activeConvo);
-		}
-	}
-
-	public void deactivateConvo() {
-		activeConvo = "";
-	}
-
-	public void updateConvos(ArrayList<Conversation> userList, boolean isUser) {
-		if (isUser) {
-			for (Conversation i : userList) {
+			for (Conversation i : convoList) {
 				if (UserConvos.containsKey(i.getName())) {
 					UserConvos.get(i.getName()).updateUsers(i.getUsers());
 				} else {
@@ -46,7 +25,7 @@ public class ConvoManager {
 				}
 			}
 		} else {
-			for (Conversation i : userList) {
+			for (Conversation i : convoList) {
 				if (GroupConvos.containsKey(i.getName())) {
 					GroupConvos.get(i.getName()).updateUsers(i.getUsers());
 				} else {
@@ -63,18 +42,10 @@ public class ConvoManager {
 			}
 			UserConvos.get(which).addMessage(mes);
 		} else {
-			if (!UserConvos.containsKey(which)) {
-				UserConvos.put(which, new Conversation(new ArrayList<>(), which));
+			if (!GroupConvos.containsKey(which)) {
+				GroupConvos.put(which, new Conversation(new ArrayList<>(), which));
 			}
-			UserConvos.get(which).addMessage(mes);
-		}
-	}
-
-	public ArrayList<Message> getBuffer() {
-		if (this.isUser) {
-			return UserConvos.get(this.activeConvo).getBuffer();
-		} else {
-			return GroupConvos.get(this.activeConvo).getBuffer();
+			GroupConvos.get(which).addMessage(mes);
 		}
 	}
 
@@ -93,4 +64,13 @@ public class ConvoManager {
 			GroupConvos.get(which).getBuffer().clear();
 		}
 	}
+
+	public ArrayList<String> getMembers(String convo, boolean isUser) {
+		if (isUser) {
+			return UserConvos.get(convo).getUsers();
+		} else {
+			return GroupConvos.get(convo).getUsers();
+		}
+	}
+
 }
