@@ -55,10 +55,10 @@ public class MessageHelper {
 		return "BROADCAST" + l2Delimiter + from + l2Delimiter + groupname + l2Delimiter + message + endingDelimiter;
 	}
 
-	public static String composeAddMessasge(String groupname, ArrayList<String> who) {
-		StringBuilder message = new StringBuilder("ADD" + l2Delimiter + groupname + l2Delimiter + who.get(0));
+	public static String composeAddMessasge(String groupname, ArrayList<String> who, String from) {
+		StringBuilder message = new StringBuilder("ADD" + l2Delimiter + from + l2Delimiter + groupname);
 		for (String i : who) {
-			message.append(l3Delimiter);
+			message.append(l2Delimiter);
 			message.append(i);
 		}
 		message.append(endingDelimiter);

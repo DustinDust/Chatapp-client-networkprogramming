@@ -315,7 +315,7 @@ public class App extends Application {
 						err.showDialogue();
 						return;
 					}
-					String message = MessageHelper.composeAddMessasge(groupName, selectedUsers);
+					String message = MessageHelper.composeAddMessasge(groupName, selectedUsers, currentUser);
 					try {
 						cc.send(message);
 					} catch (Exception e) {
