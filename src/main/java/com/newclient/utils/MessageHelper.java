@@ -52,7 +52,7 @@ public class MessageHelper {
 	}
 
 	public static String composeBroadCaseMessage(String from, String groupname, String message) {
-		return "BROADCASE" + l2Delimiter + from + l2Delimiter + groupname + l2Delimiter + message + endingDelimiter;
+		return "BROADCAST" + l2Delimiter + from + l2Delimiter + groupname + l2Delimiter + message + endingDelimiter;
 	}
 
 	public static String composeAddMessasge(String groupname, ArrayList<String> who) {

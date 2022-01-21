@@ -186,6 +186,29 @@ public class App extends Application {
 			groupButton = new Button("Create a group from selected users");
 			addUserButton = new Button("Add selected users to selected group");
 			leaveGroupButton = new Button("Leave selected group");
+
+			leaveGroupButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+				@Override
+				public void handle(MouseEvent event) {
+					if (event.getButton() == MouseButton.PRIMARY) {
+						if (listGroups.getSelectionModel().getSelectedItem() != null) {
+							String sgrup = listGroups.getSelectionModel().getSelectedItem();
+							if (sgrup.length() <= 0)
+								return;
+							String message = MessageHelper.composeLeaveGroupMessage(currentUser, sgrup);
+							try {
+								cc.send(message);
+							} catch (Exception e) {
+								MessageDialogueWindows ew = new MessageDialogueWindows("Fail to send", "Error",
+										Modality.APPLICATION_MODAL);
+								ew.showDialogue();
+								e.printStackTrace();
+							}
+						}
+					}
+				}
+			});
+
 			groupReloadButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
 				@Override
 				public void handle(MouseEvent event) {
@@ -493,6 +516,7 @@ public class App extends Application {
 						chatText.appendText(sent.getFormatted());
 						try {
 							cc.send(sendmessage);
+							System.out.println(sendmessage);
 						} catch (Exception e) {
 							MessageDialogueWindows err = new MessageDialogueWindows("Fail to send message", "Error",
 									Modality.APPLICATION_MODAL);
