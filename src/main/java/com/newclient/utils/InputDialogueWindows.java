@@ -10,6 +10,9 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+/**
+ * This class helps spawn a dialogue window to get user input
+ */
 public class InputDialogueWindows {
 	private String input;
 	private Stage dstg;
@@ -18,6 +21,11 @@ public class InputDialogueWindows {
 	private Button btn;
 	private VBox container;
 
+	/**
+	 * 
+	 * @param title title of the window
+	 * @param message prompt text to the input field
+	 */
 	public InputDialogueWindows(String title, String message) {
 		dstg = new Stage();
 		dstg.initModality(Modality.APPLICATION_MODAL);
@@ -39,10 +47,17 @@ public class InputDialogueWindows {
 		dstg.setScene(dscn);
 	}
 
+	/**
+	 * Show dialouge and block the main GUI until the dialouge window is closed
+	 */
 	public void showAndWait() {
 		this.dstg.showAndWait();
 	}
 
+	/**
+	 * Get the data that user input
+	 * @return user input
+	 */
 	public String getInput() {
 		return this.input;
 	}

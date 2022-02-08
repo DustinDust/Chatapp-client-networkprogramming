@@ -12,6 +12,9 @@ import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+/**
+ * This class helps spawn a dialouge window to display some message
+ */
 public class MessageDialogueWindows {
 	private Stage stage;
 	private Scene scene;
@@ -19,11 +22,20 @@ public class MessageDialogueWindows {
 	private Label message;
 	private Button interact;
 
+	/**
+	 * 
+	 * @param mes the message to display
+	 * @param title the title of the dialouge window
+	 * @param modal Modality Mode
+	 */
 	public MessageDialogueWindows(String mes, String title, Modality modal) {
 		message = new Label(mes);
 		message.setFont(Font.font(16));
 		interact = new Button("Close");
+
+		//event handler when close 
 		interact.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+
 			@Override
 			public void handle(MouseEvent event) {
 				if (event.getButton() == MouseButton.PRIMARY) {
@@ -34,7 +46,7 @@ public class MessageDialogueWindows {
 
 		container = new VBox(20, message, interact);
 		container.setAlignment(Pos.CENTER);
-		scene = new Scene(container, 400, 150);
+		scene = new Scene(container, 600, 600);
 		stage = new Stage();
 		stage.setTitle(title);
 		stage.setScene(scene);
@@ -49,6 +61,9 @@ public class MessageDialogueWindows {
 		stage.setTitle(title);
 	}
 
+	/**
+	 * show the dialogue window
+	 */
 	public void showDialogue() {
 		stage.show();
 	}

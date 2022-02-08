@@ -1,15 +1,19 @@
 package com.newclient;
 
+// general java import
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
+// project defined import
 import com.newclient.models.Conversation;
 import com.newclient.models.Message;
 import com.newclient.utils.ConvoManager;
 import com.newclient.utils.InputDialogueWindows;
 import com.newclient.utils.MessageDialogueWindows;
 import com.newclient.utils.MessageHelper;
+import com.newclient.utils.ResCode;
 
+// javafx GUI import
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
@@ -34,6 +38,8 @@ import javafx.stage.Stage;
 
 /**
  * JavaFX App
+ * 
+ * This class contain all the GUI logic and how GUI interact with data
  */
 public class App extends Application {
 	Stage mainStage = new Stage();
@@ -44,18 +50,28 @@ public class App extends Application {
 	ConvoManager cm = new ConvoManager();
 	ChatView chatview = new ChatView();
 
+	/**
+	 * this method runs when the class is initialized before starting the GUI app
+	 */
 	@Override
 	public void init() throws Exception {
 		super.init();
 		cc.startConnection();
 	}
 
+	/**
+	 * This method runs before the app close. 
+	 * Close the socket and exit GUI gracefully
+	 */
 	@Override
 	public void stop() throws Exception {
 		super.stop();
 		cc.closeConnection();
 	}
 
+	/**
+	 * Main GUI App starting from here
+	 */
 	@Override
 	public void start(Stage stage) {
 		cc.setOnLoginCallback(menu.getLoginMessageHandler());
@@ -81,11 +97,18 @@ public class App extends Application {
 		});
 	}
 
+	/**
+	 * java launch
+	 */
 	public static void main(String[] args) {
 		launch();
 	}
 
+	/**
+	 * Login Menu class and all the login logic is handled here
+	 */
 	private class Menu {
+		//GUI components
 		private VBox container;
 		private Button loginConfirmButton;
 		private Label loginLabel;
@@ -93,6 +116,7 @@ public class App extends Application {
 		private PasswordField loginPassInput;
 		private Scene menuScene;
 
+		// username that the user attempted to login as
 		private String attemptedUser;
 
 		Menu() {
@@ -106,6 +130,7 @@ public class App extends Application {
 			loginLabel.setFont(Font.font(20));
 			loginConfirmButton = new Button("Confirm");
 			loginConfirmButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+
 				@Override
 				public void handle(MouseEvent event) {
 					attemptedUser = loginUserInput.getText();
@@ -136,6 +161,7 @@ public class App extends Application {
 			return menuScene;
 		}
 
+		// Login handler callback. Will be called by the ClientConnection object when received a login reponse
 		Consumer<String> getLoginMessageHandler() {
 			return (str) -> {
 				ArrayList<String> part = MessageHelper.splitMessageL2(str);
@@ -157,7 +183,8 @@ public class App extends Application {
 					}
 				} else {
 					Platform.runLater(() -> {
-						MessageDialogueWindows errorWD = new MessageDialogueWindows("Error" + part.get(1), "Fail to login",
+						MessageDialogueWindows errorWD = new MessageDialogueWindows("Error" + ResCode.get(part.get(1)),
+								"Fail to login",
 								Modality.APPLICATION_MODAL);
 						errorWD.showDialogue();
 					});
@@ -166,6 +193,13 @@ public class App extends Application {
 		}
 	}
 
+	/**
+	 * This class handle the main "hub", where user list, group list and all other utils functionalities 
+	 * button such as reload user/group list, create group, add user to group, logout are displayed
+	 * 
+	 * User can, from here, select a conversation (with user or group) to move to the next Chat Window
+	 * and start chatting
+	 * */
 	private class ConversationList {
 		private ListView<String> listGroups;
 		private ListView<String> listUsers;
@@ -187,6 +221,9 @@ public class App extends Application {
 			addUserButton = new Button("Add selected users to selected group");
 			leaveGroupButton = new Button("Leave selected group");
 
+			/**
+			 * Adding all the event handler when click to all the button
+			 */
 			leaveGroupButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
 				@Override
 				public void handle(MouseEvent event) {
@@ -263,6 +300,8 @@ public class App extends Application {
 							String selectedGroup = listGroups.getSelectionModel().getSelectedItem();
 							chatview.activate(selectedGroup, false);
 						}
+					} else if (event.getButton() == MouseButton.SECONDARY) {
+						listGroups.getSelectionModel().clearSelection();
 					}
 				}
 			});
@@ -274,6 +313,8 @@ public class App extends Application {
 							String selectedUser = listUsers.getSelectionModel().getSelectedItem();
 							chatview.activate(selectedUser, true);
 						}
+					} else if (event.getButton() == MouseButton.SECONDARY) {
+						listUsers.getSelectionModel().clearSelection();
 					}
 				}
 			});
@@ -281,13 +322,16 @@ public class App extends Application {
 				@Override
 				public void handle(MouseEvent event) {
 					ArrayList<String> selectedUsers = new ArrayList<>(listUsers.getSelectionModel().getSelectedItems());
-					if (selectedUsers.size() < 1) {
+					if (selectedUsers.size() < 1 || selectedUsers == null) {
+						MessageDialogueWindows error = new MessageDialogueWindows("Select atleast one user", "Can't create group",
+								Modality.APPLICATION_MODAL);
+						error.showDialogue();
 						return;
 					}
-					InputDialogueWindows getGroupName = new InputDialogueWindows("Input", "group name go here");
+					InputDialogueWindows getGroupName = new InputDialogueWindows("Input group name", "Fancy group");
 					getGroupName.showAndWait();
 					String groupname = getGroupName.getInput();
-					if (groupname.length() <= 0) {
+					if (groupname.length() <= 0 || groupname == null) {
 						MessageDialogueWindows error = new MessageDialogueWindows("Group name can't be empty", "Error",
 								Modality.APPLICATION_MODAL);
 						error.showDialogue();
@@ -310,7 +354,8 @@ public class App extends Application {
 					ArrayList<String> selectedUsers = new ArrayList<>(listUsers.getSelectionModel().getSelectedItems());
 					String groupName = listGroups.getSelectionModel().getSelectedItem();
 					if (selectedUsers == null || groupName == null || selectedUsers.size() <= 0) {
-						MessageDialogueWindows err = new MessageDialogueWindows("Invalid Input", "Error",
+						MessageDialogueWindows err = new MessageDialogueWindows("Invalid Input: at least one user must be selected",
+								"Error",
 								Modality.APPLICATION_MODAL);
 						err.showDialogue();
 						return;
@@ -328,6 +373,11 @@ public class App extends Application {
 					listGroups.getSelectionModel().clearSelection();
 				}
 			});
+
+			/**
+			 * Putting all the component into window
+			 */
+
 			ButtonBar bar1 = new ButtonBar();
 			ButtonBar bar2 = new ButtonBar();
 			ButtonBar.setButtonData(logoutButton, ButtonData.RIGHT);
@@ -347,14 +397,30 @@ public class App extends Application {
 			return this.listScene;
 		}
 
+		/**
+		 * This function updates the listUsers component's data
+		 * Will override all the current data
+		 * @param users ArrayList of user name String 
+		 */
 		void updateUserList(ArrayList<String> users) {
 			listUsers.getItems().setAll(users);
 		}
 
+		/**
+		 * This function updates the listGroup component's data
+		 * will override all the current data
+		 * @param groups ArrayList of group name String
+		 */
 		void updateGroupList(ArrayList<String> groups) {
 			listGroups.getItems().setAll(groups);
 		}
 
+		/**
+		 * This function returen the Consumer Object within the context of the main App class
+		 * so that the ClientConnection class can use as a callback to handle message
+		 * @return A Consumer Object that acts as a callback function to be called to handle the
+		 * 					LOGOUT reponse message 
+		 */
 		Consumer<String> getLogoutHandler() {
 			return (str) -> {
 				ArrayList<String> parts = MessageHelper.splitMessageL2(str);
@@ -365,7 +431,7 @@ public class App extends Application {
 					});
 				} else {
 					Platform.runLater(() -> {
-						MessageDialogueWindows error = new MessageDialogueWindows("Fail to logout: " + parts.get(1), "Oops!",
+						MessageDialogueWindows error = new MessageDialogueWindows("Fail to logout", "Oops!",
 								Modality.APPLICATION_MODAL);
 						error.showDialogue();
 					});
@@ -374,6 +440,14 @@ public class App extends Application {
 			};
 		}
 
+		/**
+		 * This function return the Consumer Object within the context of the main App class
+		 * so that the ClientConnection class can use as a callback to handle message.
+		 * 
+		 * this will handle both UI update and Data update
+		 * @return A Consumer Object that acts as a callback function to handle the ListUser response message. 
+		 * 
+		 */
 		Consumer<String> getListUserHandler() {
 			return str -> {
 				ArrayList<String> part = MessageHelper.splitMessageL2(str);
@@ -402,6 +476,11 @@ public class App extends Application {
 			};
 		}
 
+		/**
+		 * This function return the Consumer Object within the context of the main App class
+		 * so that the ClientConnection class can use as a callback to handle message
+		 * @return A Consumer Object that acts as a callback function to handle the LEAVE response message. 
+		 */
 		Consumer<String> getLeaveGroupHandler() {
 			return str -> {
 				ArrayList<String> part = MessageHelper.splitMessageL2(str);
@@ -415,7 +494,8 @@ public class App extends Application {
 					}
 				} else {
 					Platform.runLater(() -> {
-						MessageDialogueWindows error = new MessageDialogueWindows("Fail to leave group", "Error",
+						MessageDialogueWindows error = new MessageDialogueWindows(
+								"Fail to leave group: " + ResCode.get(part.get(1)), "Error",
 								Modality.APPLICATION_MODAL);
 						error.showDialogue();
 					});
@@ -423,6 +503,14 @@ public class App extends Application {
 			};
 		}
 
+		/**
+		 * This function return the Consumer Object within the context of the main App class
+		 * so that the ClientConnection class can use as a callback to handle message. 
+		 * 
+		 * Will handle both UI update and Conversation data update
+		 * @return A Consumer Object that acts as a callback function to handle the LISTGROUP response message. 
+		 * 
+		 */
 		Consumer<String> getListGroupHandler() {
 			return str -> {
 				ArrayList<String> part2 = MessageHelper.splitMessageL2(str);
@@ -450,6 +538,12 @@ public class App extends Application {
 			};
 		}
 
+		/**
+		 * This function return the Consumer Object within the context of the main App class
+		 * so that the ClientConnection class can use as a callback to handle message
+		 * @return A Consumer Object that acts as a callback function to handle the ADD response message. 
+		 * 
+		 */
 		Consumer<String> getAddHandler() {
 			return (str) -> {
 				ArrayList<String> parts = MessageHelper.splitMessageL2(str);
@@ -461,7 +555,8 @@ public class App extends Application {
 					}
 				} else {
 					Platform.runLater(() -> {
-						MessageDialogueWindows dw = new MessageDialogueWindows("Error adding user: " + parts.get(2),
+						MessageDialogueWindows dw = new MessageDialogueWindows(
+								"Error adding user " + parts.get(2) + " " + ResCode.get(parts.get(2)),
 								"Fail to add users",
 								Modality.APPLICATION_MODAL);
 						dw.showDialogue();
@@ -470,6 +565,12 @@ public class App extends Application {
 			};
 		}
 
+		/**
+		 * This function return the Consumer Object within the context of the main App class
+		 * so that the ClientConnection class can use as a callback to handle message
+		 * @return A Consumer Object that acts as a callback function to handle the GROUP response message. 
+		 * 
+		 */
 		Consumer<String> getGroupHandler() {
 			return (str) -> {
 				ArrayList<String> parts = MessageHelper.splitMessageL2(str);
@@ -480,7 +581,7 @@ public class App extends Application {
 						e.printStackTrace();
 					}
 				} else {
-					MessageDialogueWindows dw = new MessageDialogueWindows("Error creating GROUP: " + parts.get(2),
+					MessageDialogueWindows dw = new MessageDialogueWindows("Error creating GROUP: " + ResCode.get(parts.get(2)),
 							"Fail to create group",
 							Modality.APPLICATION_MODAL);
 					dw.showDialogue();
@@ -489,6 +590,11 @@ public class App extends Application {
 		}
 	}
 
+	/**
+	 * Class contains UI for:
+	 * 		Chat text, Message input, Conversation Info, sending message
+	 * Also contains logic for receiving user message, sending message to another user/group
+	 */
 	private class ChatView {
 		private Scene chatScene;
 		private String currentConvo;
@@ -564,6 +670,13 @@ public class App extends Application {
 			currentConvo = "";
 		}
 
+		/**
+		 * The method activates a user/group conversation, makes them the currently focused conversation (make the chatText display the conversation buffer, convoInfoText display
+		 * info of the activated conversation)
+		 * 
+		 * @param which the conversation name (groupname/username)
+		 * @param isUser is the conversation you desired to activate a group conversation or a user conversation
+		 */
 		public void activate(String which, boolean isUser) {
 			currentConvo = which;
 			this.isUser = isUser;
@@ -583,6 +696,14 @@ public class App extends Application {
 			mainStage.setScene(this.chatScene);
 		}
 
+		/**
+		 * This function return the Consumer Object within the context of the main App class
+		 * so that the ClientConnection class can use as a callback to handle message.
+		 * 
+		 * will only push the message to buffer if the target 
+		 * conversation is different from current active conversation (which is being dispayed)
+		 * @return A Consumer Object that acts as a callback function to handle the response message. 
+		 */
 		Consumer<String> getMessageUserHandler() {
 			return str -> {
 				ArrayList<String> part = MessageHelper.splitMessageL2(str);
@@ -600,6 +721,16 @@ public class App extends Application {
 			};
 		}
 
+		/**
+		 * This function return the Consumer Object within the context of the main App class
+		 * so that the ClientConnection class can use as a callback to handle message.
+		 * 
+		 * will only push the message to buffer if the target 
+		 * conversation is different from current active conversation (which is being dispayed)
+		 * @return A Consumer Object that acts as a callback function to handle the MESSAGEGROUP message. 
+		 * 
+		 * 
+		 */
 		Consumer<String> getMessageGroupHandler() {
 			return str -> {
 				ArrayList<String> part = MessageHelper.splitMessageL2(str);
@@ -618,13 +749,19 @@ public class App extends Application {
 			};
 		}
 
+		/**
+		 * This function return the Consumer Object within the context of the main App class
+		 * so that the ClientConnection class can use as a callback to handle message
+		 * @return A Consumer Object that acts as a callback function to handle the POST response message. 
+		 * 
+		 */
 		Consumer<String> getPostHandler() {
 			return str -> {
 				ArrayList<String> part = MessageHelper.splitMessageL2(str);
 				if (part.get(1).equals("21")) {
 					Platform.runLater(() -> {
 						MessageDialogueWindows error = new MessageDialogueWindows(
-								"Fail to send message: Your message partner had gone offline...", "Error", Modality.APPLICATION_MODAL);
+								"Fail to send message: " + ResCode.get(part.get(1)), "Error", Modality.APPLICATION_MODAL);
 						error.showDialogue();
 					});
 				} else
