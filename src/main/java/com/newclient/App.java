@@ -118,7 +118,7 @@ public class App extends Application {
 					try {
 						cc.send(MessageHelper.composeLoginMessage(attemptedUser, attemptedPassword));
 					} catch (Exception e) {
-						MessageDialogueWindows err = new MessageDialogueWindows("Failt to send message to server", "Error",
+						MessageDialogueWindows err = new MessageDialogueWindows("Failed to send message to server", "Error",
 								Modality.APPLICATION_MODAL);
 						err.showDialogue();
 						e.printStackTrace();
@@ -149,7 +149,7 @@ public class App extends Application {
 						cc.send(MessageHelper.composeListGroupMessage(currentUser));
 					} catch (Exception e) {
 						Platform.runLater(() -> {
-							MessageDialogueWindows err = new MessageDialogueWindows("Cant send message to the server", "Error",
+							MessageDialogueWindows err = new MessageDialogueWindows("Can't send message to the server", "Error",
 									Modality.APPLICATION_MODAL);
 							err.showDialogue();
 							e.printStackTrace();
@@ -157,7 +157,7 @@ public class App extends Application {
 					}
 				} else {
 					Platform.runLater(() -> {
-						MessageDialogueWindows errorWD = new MessageDialogueWindows("Error Code: " + part.get(1), "Fail to login",
+						MessageDialogueWindows errorWD = new MessageDialogueWindows("Error" + part.get(1), "Fail to login",
 								Modality.APPLICATION_MODAL);
 						errorWD.showDialogue();
 					});
@@ -309,7 +309,7 @@ public class App extends Application {
 				public void handle(MouseEvent event) {
 					ArrayList<String> selectedUsers = new ArrayList<>(listUsers.getSelectionModel().getSelectedItems());
 					String groupName = listGroups.getSelectionModel().getSelectedItem();
-					if (selectedUsers.size() <= 0 || groupName == null) {
+					if (selectedUsers == null || groupName == null || selectedUsers.size() <= 0) {
 						MessageDialogueWindows err = new MessageDialogueWindows("Invalid Input", "Error",
 								Modality.APPLICATION_MODAL);
 						err.showDialogue();
@@ -408,6 +408,11 @@ public class App extends Application {
 				if (part.get(1).equals("60")) {
 					String leavewhich = part.get(2);
 					cm.clearBuffer(leavewhich, false);
+					try {
+						cc.send(MessageHelper.composeListGroupMessage(currentUser));
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 				} else {
 					Platform.runLater(() -> {
 						MessageDialogueWindows error = new MessageDialogueWindows("Fail to leave group", "Error",
@@ -498,7 +503,7 @@ public class App extends Application {
 		private TextField messageInput;
 
 		ChatView() {
-			sendButton = new Button("Send message");
+			sendButton = new Button("Send");
 			sendButton.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
 				@Override
 				public void handle(MouseEvent event) {
@@ -547,7 +552,7 @@ public class App extends Application {
 			convoInfoText.setPrefWidth(194.4);
 			messageInput = new TextField();
 			messageInput.setPromptText("Enter message");
-			messageInput.setPrefWidth(535);
+			messageInput.setPrefWidth(509);
 			infoDisplayContainer = new HBox(chatText, convoInfoText);
 			inputDisplayContainer = new HBox(messageInput, sendButton, backButton);
 			infoDisplayContainer.setPrefWidth(600);
