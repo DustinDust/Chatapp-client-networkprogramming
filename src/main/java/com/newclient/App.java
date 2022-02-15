@@ -567,7 +567,7 @@ public class App extends Application {
 				} else {
 					Platform.runLater(() -> {
 						MessageDialogueWindows dw = new MessageDialogueWindows(
-								"Error adding user " + parts.get(2) + " " + ResCode.get(parts.get(2)),
+								"Error adding user " + parts.get(1) + " " + ResCode.get(parts.get(1)),
 								"Fail to add users",
 								Modality.APPLICATION_MODAL);
 						dw.showDialogue();
