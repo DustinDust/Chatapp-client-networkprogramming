@@ -323,7 +323,7 @@ public class App extends Application {
 				public void handle(MouseEvent event) {
 					ArrayList<String> selectedUsers = new ArrayList<>(listUsers.getSelectionModel().getSelectedItems());
 					if (selectedUsers.size() < 1 || selectedUsers == null) {
-						MessageDialogueWindows error = new MessageDialogueWindows("Select atleast one user", "Can't create group",
+						MessageDialogueWindows error = new MessageDialogueWindows("Select at least one user", "Can't create group",
 								Modality.APPLICATION_MODAL);
 						error.showDialogue();
 						return;
@@ -354,7 +354,8 @@ public class App extends Application {
 					ArrayList<String> selectedUsers = new ArrayList<>(listUsers.getSelectionModel().getSelectedItems());
 					String groupName = listGroups.getSelectionModel().getSelectedItem();
 					if (selectedUsers == null || groupName == null || selectedUsers.size() <= 0) {
-						MessageDialogueWindows err = new MessageDialogueWindows("Invalid Input: at least one user must be selected",
+						MessageDialogueWindows err = new MessageDialogueWindows(
+								"Invalid Input: at least one user and group must be selected",
 								"Error",
 								Modality.APPLICATION_MODAL);
 						err.showDialogue();
@@ -591,7 +592,7 @@ public class App extends Application {
 						e.printStackTrace();
 					}
 				} else {
-					MessageDialogueWindows dw = new MessageDialogueWindows("Error creating GROUP: " + ResCode.get(parts.get(2)),
+					MessageDialogueWindows dw = new MessageDialogueWindows("Error creating GROUP",
 							"Fail to create group",
 							Modality.APPLICATION_MODAL);
 					dw.showDialogue();
