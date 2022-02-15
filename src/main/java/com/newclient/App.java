@@ -548,6 +548,16 @@ public class App extends Application {
 			return (str) -> {
 				ArrayList<String> parts = MessageHelper.splitMessageL2(str);
 				if (parts.get(1).equals("40")) {
+					StringBuilder listUserSuccessfullyAdded = new StringBuilder("");
+					for (int i = 2; i < parts.size(); i++) {
+						listUserSuccessfullyAdded.append("\n" + parts.get(i));
+					}
+					Platform.runLater(() -> {
+						MessageDialogueWindows listadd = new MessageDialogueWindows("Users added\n" + listUserSuccessfullyAdded,
+								"Add response",
+								Modality.APPLICATION_MODAL);
+						listadd.showDialogue();
+					});
 					try {
 						cc.send(MessageHelper.composeListGroupMessage(currentUser));
 					} catch (Exception e) {
