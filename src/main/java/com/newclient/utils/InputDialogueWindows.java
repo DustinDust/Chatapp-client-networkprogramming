@@ -32,6 +32,7 @@ public class InputDialogueWindows {
 		dstg.setTitle(title);
 		inputfield = new TextField();
 		inputfield.setPromptText(message);
+		inputfield.setMaxWidth(300);
 		this.btn = new Button("Confirm");
 		btn.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
 			@Override
@@ -43,7 +44,7 @@ public class InputDialogueWindows {
 		});
 		container = new VBox(20, inputfield, btn);
 		container.setAlignment(Pos.CENTER);
-		dscn = new Scene(container, 400, 150);
+		dscn = new Scene(container, 600, 200);
 		dstg.setScene(dscn);
 	}
 

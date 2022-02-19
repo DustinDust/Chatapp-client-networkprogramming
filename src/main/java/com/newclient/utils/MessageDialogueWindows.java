@@ -50,7 +50,7 @@ public class MessageDialogueWindows {
 
 		container = new VBox(20, message, interact);
 		container.setAlignment(Pos.CENTER);
-		scene = new Scene(container, 600, 600);
+		scene = new Scene(container, 600, 200);
 		stage = new Stage();
 		stage.setTitle(title);
 		stage.setScene(scene);

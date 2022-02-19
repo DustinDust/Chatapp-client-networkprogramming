@@ -102,7 +102,7 @@ public class MessageHelper {
 	 * @param message message content
 	 * @return compose message string
 	 */
-	public static String composeBroadCaseMessage(String from, String groupname, String message) {
+	public static String composeBroadCastMessage(String from, String groupname, String message) {
 		return "BROADCAST" + l2Delimiter + from + l2Delimiter + groupname + l2Delimiter + message + endingDelimiter;
 	}
 

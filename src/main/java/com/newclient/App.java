@@ -554,7 +554,8 @@ public class App extends Application {
 						listUserSuccessfullyAdded.append("\n" + parts.get(i));
 					}
 					Platform.runLater(() -> {
-						MessageDialogueWindows listadd = new MessageDialogueWindows("Users added\n" + listUserSuccessfullyAdded,
+						MessageDialogueWindows listadd = new MessageDialogueWindows(
+								"List of Users added\n" + listUserSuccessfullyAdded,
 								"Add response",
 								Modality.APPLICATION_MODAL);
 						listadd.showDialogue();
@@ -631,7 +632,7 @@ public class App extends Application {
 						}
 						String sendmessage = MessageHelper.composePostMessage(currentUser, currentConvo, message);
 						if (!isUser) {
-							sendmessage = MessageHelper.composeBroadCaseMessage(currentUser, currentConvo, message);
+							sendmessage = MessageHelper.composeBroadCastMessage(currentUser, currentConvo, message);
 						}
 						Message sent = new Message(currentUser, message);
 						cm.insertMessage(sent, currentConvo, isUser);
