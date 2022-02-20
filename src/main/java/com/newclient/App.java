@@ -183,7 +183,7 @@ public class App extends Application {
 					}
 				} else {
 					Platform.runLater(() -> {
-						MessageDialogueWindows errorWD = new MessageDialogueWindows("Error" + ResCode.get(part.get(1)),
+						MessageDialogueWindows errorWD = new MessageDialogueWindows("Error: " + ResCode.get(part.get(1)),
 								"Fail to login",
 								Modality.APPLICATION_MODAL);
 						errorWD.showDialogue();
@@ -593,10 +593,12 @@ public class App extends Application {
 						e.printStackTrace();
 					}
 				} else {
-					MessageDialogueWindows dw = new MessageDialogueWindows("Error creating GROUP",
+					MessageDialogueWindows dw = new MessageDialogueWindows("Error: " + ResCode.get(parts.get(1)),
 							"Fail to create group",
 							Modality.APPLICATION_MODAL);
-					dw.showDialogue();
+					Platform.runLater(() -> {
+						dw.showDialogue();
+					});
 				}
 			};
 		}
