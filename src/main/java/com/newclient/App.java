@@ -593,10 +593,10 @@ public class App extends Application {
 						e.printStackTrace();
 					}
 				} else {
-					MessageDialogueWindows dw = new MessageDialogueWindows("Error: " + ResCode.get(parts.get(1)),
-							"Fail to create group",
-							Modality.APPLICATION_MODAL);
 					Platform.runLater(() -> {
+						MessageDialogueWindows dw = new MessageDialogueWindows("Error: " + ResCode.get(parts.get(1)),
+								"Fail to create group",
+								Modality.APPLICATION_MODAL);
 						dw.showDialogue();
 					});
 				}
